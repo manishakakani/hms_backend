@@ -1,11 +1,15 @@
 let express = require("express");
-const { Bookings } = require("../Schemas/Bookings");
+const db = require("../Schemas");
+const Bookings = db.bookings;
+// const { Bookings } = require("../Schemas/Bookings.model");
 let router = express.Router();
 
-router.get("/allBookings", async (req, res) => {
+router.get("/bookings", async (req, res) => {
   try {
+    console.log("allBookings");
     Bookings.find()
       .then((books) => {
+        console.log({ books });
         res.status(200).send(books);
       })
       .catch((err) => {
