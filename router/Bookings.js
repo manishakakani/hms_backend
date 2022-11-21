@@ -1,6 +1,7 @@
 let express = require("express");
 const db = require("../Schemas");
 const Bookings = db.bookings;
+const Room = db.room;
 // const { Bookings } = require("../Schemas/Bookings.model");
 let router = express.Router();
 
@@ -78,8 +79,17 @@ router.get("/bookings/bookingdate/:date", async (req, res) => {
   }
 });
 
+const generateBookingID = () => {
+  let val = "BOOK" + Math.floor(Math.random() * 10000);
+  return Bookings.find({ BookingID: val }).then(async (res) => {
+    if (res.length > 0) return await generateBookingID();
+    return val;
+  });
+};
+
 router.post("/bookings", async (req, res) => {
   const data = req.body;
+  data.BookingID = await generateBookingID();
   const booking = new Bookings(data);
   try {
     booking
@@ -95,6 +105,23 @@ router.post("/bookings", async (req, res) => {
     console.log({ error });
     res.status(400).send(error);
   }
+});
+
+router.post("/availability/:roomType", (req, res) => {
+  Room.find({ RoomTypeID: req.params.roomType })
+    .then((result) => {
+      Bookings.find({
+        RoomTypeID: req.params.roomType,
+        BookingDates: req.body.date,
+      })
+        .then((response) => {
+          let count = 0;
+          response.map((book) => (count += book.NumberOfRooms));
+          res.status(200).send({ [req.body.date]: result.length - count });
+        })
+        .catch((err) => res.status(400).send(err));
+    })
+    .catch((err) => res.status(400).send(err));
 });
 
 router.patch("/bookings/:id", async (req, res) => {

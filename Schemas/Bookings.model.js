@@ -12,6 +12,7 @@ module.exports = (mongoose) => {
     BookingID: String,
     BookingDates: Array,
     RoomIDs: Array,
+    RoomTypeID: String,
   });
   BookingsSchema.method("toJSON", function () {
     const { _id, ...object } = this.toObject();
