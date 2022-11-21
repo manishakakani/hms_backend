@@ -42,8 +42,19 @@ router.get("/person/login/:EmailID/:pw", (req, res) => {
     });
 });
 
+const generatePersonID = (prefix) => {
+  let val = prefix + Math.floor(Math.random() * 10000);
+  return Person.find({ UniqueNumber: val }).then((res) => {
+    if (res.length > 0) return null;
+    return val;
+  });
+};
+
 router.post("/person", async (req, res) => {
   const data = req.body;
+  const prefix =
+    data.Role === "Admin" ? "ADM" : data.Role === "Staff" ? "STF" : "CUS";
+  data.UniqueNumber = await generatePersonID(prefix);
   const person = new Person(data);
   try {
     person
