@@ -97,25 +97,6 @@ router.post("/bookings", async (req, res) => {
   }
 });
 
-router.post("/bookings", async (req, res) => {
-  const data = req.body;
-  const booking = new Bookings(data);
-  try {
-    booking
-      .save(booking)
-      .then((response) => {
-        res.status(200).send("Successfully inserted!");
-      })
-      .catch((err) => {
-        console.log({ err });
-        res.status(400).send(err);
-      });
-  } catch (error) {
-    console.log({ error });
-    res.status(400).send(error);
-  }
-});
-
 router.patch("/bookings/:id", async (req, res) => {
   if (!req.body) {
     return res.status(400).send({
