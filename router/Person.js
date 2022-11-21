@@ -29,6 +29,19 @@ router.get("/person/:uniquenumber", (req, res) => {
     });
 });
 
+router.get("/person/login/:EmailID/:pw", (req, res) => {
+  Person.find({ EmailID: req.params.EmailID, Password: req.params.pw })
+    .then((data) => {
+      res.status(200).send(data);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving tutorials.",
+      });
+    });
+});
+
 router.post("/person", async (req, res) => {
   const data = req.body;
   const person = new Person(data);
