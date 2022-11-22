@@ -29,6 +29,19 @@ router.get("/person/:uniquenumber", (req, res) => {
     });
 });
 
+router.get("/staff", (req, res) => {
+  Person.find({ Role: "Staff" })
+    .then((data) => {
+      res.status(200).send(data);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while retrieving tutorials.",
+      });
+    });
+});
+
 router.get("/person/login/:EmailID/:pw", (req, res) => {
   Person.find({ EmailID: req.params.EmailID, Password: req.params.pw })
     .then((data) => {

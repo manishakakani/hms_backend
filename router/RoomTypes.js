@@ -2,6 +2,7 @@ let express = require("express");
 let router = express.Router();
 let db = require("../Schemas");
 let RoomTypes = db.roomTypes;
+let Room = db.room;
 
 router.get("/roomtypes", (req, res) => {
   RoomTypes.find()
@@ -29,14 +30,50 @@ router.get("/roomtypes/:roomtypeid", (req, res) => {
     });
 });
 
-router.post("/roomtypes", (req, res) => {
+const generateRoomTypeID = () => {
+  let val = "RT" + Math.floor(Math.random() * 10000);
+  return RoomTypes.find({ RoomTypeID: val }).then(async (res) => {
+    if (res.length > 0) return await generateRoomTypeID();
+    return val;
+  });
+};
+
+const generateRoomID = () => {
+  let val = "RD" + Math.floor(Math.random() * 10000);
+  return Room.find({ RoomID: val }).then(async (res) => {
+    if (res.length > 0) return await generateRoomID();
+    return val;
+  });
+};
+
+router.post("/roomtypes", async (req, res) => {
   const data = req.body;
+  data.RoomTypeID = await generateRoomTypeID();
+  data.Availability = data.Availability.filter((r) => r !== "");
   const roomtype = new RoomTypes(data);
   try {
     roomtype
       .save(roomtype)
       .then((response) => {
-        res.status(200).send("Successfully inserted!");
+        const availability = data.Availability;
+        if (availability.length) {
+          availability.map(async (a, idx) => {
+            if (a != "") {
+              let roomdata = {
+                RoomTypeID: data.RoomTypeID,
+                RoomNumber: a,
+                RoomID: generateRoomID(),
+                isRoomAvailable: true,
+                ServiceRequested: false,
+              };
+              const room = new Room(roomdata);
+              room.save(room).then((result) => {
+                if (idx == availability.length - 1)
+                  res.status(200).send("Successfully inserted!");
+              });
+            }
+          });
+        } else res.status(200).send("Successfully inserted!");
       })
       .catch((err) => {
         console.log({ err });
@@ -56,6 +93,25 @@ router.patch("/roomtypes/:id", async (req, res) => {
   }
 
   const id = req.params.id;
+  const data = req.body;
+  if (data.Availability.length) {
+    data.Availability = data.Availability.filter((r) => r !== "");
+    data.Availability.map((id) => {
+      Room.find({ RoomNumber: id }).then(async (result) => {
+        if (result.length == 0) {
+          let roomdata = {
+            RoomTypeID: data.RoomTypeID,
+            RoomNumber: id,
+            RoomID: await generateRoomID(),
+            isRoomAvailable: true,
+            ServiceRequested: false,
+          };
+          const room = new Room(roomdata);
+          await room.save(room);
+        }
+      });
+    });
+  }
 
   RoomTypes.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
     .then((data) => {
