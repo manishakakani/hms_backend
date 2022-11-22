@@ -32,6 +32,7 @@ router.get("/payments/:reservationNumber", (req, res) => {
 
 router.post("/payments", async (req, res) => {
   const data = req.body;
+  console.log({ data });
   const payment = new Payments(data);
   try {
     payment

@@ -1,6 +1,7 @@
 let express = require("express");
 const db = require("../Schemas");
 const Bookings = db.bookings;
+const Payments = db.payments;
 const Room = db.room;
 // const { Bookings } = require("../Schemas/Bookings.model");
 let router = express.Router();
@@ -67,7 +68,7 @@ router.get("/bookings/person/:id", async (req, res) => {
 router.get("/bookings/bookingdate/:date", async (req, res) => {
   const { date } = req.params;
   try {
-    Bookings.find({ BookingDates: new Date(date) })
+    Bookings.find({ BookingDates: date })
       .then((books) => {
         res.status(200).send(books);
       })
@@ -75,6 +76,58 @@ router.get("/bookings/bookingdate/:date", async (req, res) => {
         res.status(400).send(err);
       });
   } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+router.get("/bookings/today/:cusuniqnum", async (req, res) => {
+  const { cusuniqnum } = req.params;
+  let date = new Date();
+  date.setUTCHours(0, 0, 0, 0);
+  try {
+    Bookings.find({
+      CustomerUniqueNumber: cusuniqnum,
+      BookingDates: date.toISOString(),
+    })
+      .then((books) => {
+        let rooms = [];
+        books.map((bk, idx) => {
+          Room.find({ RoomID: { $in: bk.RoomIDs } }).then((room) => {
+            rooms.push(room);
+            if (idx == books.length - 1) res.status(200).send(rooms);
+          });
+        });
+      })
+      .catch((err) => {
+        res.status(400).send(err);
+      });
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
+
+router.get("/pastbookings", (req, res) => {
+  try {
+    let date = new Date();
+    date.setUTCHours(0, 0, 0, 0);
+    Bookings.find({ BookingDates: { $not: { $gte: date.toISOString() } } })
+      .then((books) => res.status(200).send(books))
+      .catch((err) => res.status(400).send(err));
+  } catch (error) {
+    console.log({ error });
+    res.status(400).send(error);
+  }
+});
+
+router.get("/futurebookings", (req, res) => {
+  try {
+    let date = new Date();
+    date.setUTCHours(0, 0, 0, 0);
+    Bookings.find({ BookingDates: { $not: { $lte: date.toISOString() } } })
+      .then((books) => res.status(200).send(books))
+      .catch((err) => res.status(400).send(err));
+  } catch (error) {
+    console.log({ error });
     res.status(400).send(error);
   }
 });
@@ -95,7 +148,23 @@ router.post("/bookings", async (req, res) => {
     booking
       .save(booking)
       .then((response) => {
-        res.status(200).send("Successfully inserted!");
+        const paydata = {
+          ReservationNumber: data.BookingID,
+          TotalAmount: data.TotalAmount,
+          PaymentStatus: "Unpaid",
+          AmountPaid: "0",
+          PaymentDate: "",
+        };
+        const payment = new Payments(paydata);
+        payment
+          .save(payment)
+          .then((response2) => {
+            res.status(200).send("Successfully inserted!");
+          })
+          .catch((err) => {
+            console.log({ err });
+            res.status(400).send(err);
+          });
       })
       .catch((err) => {
         console.log({ err });
