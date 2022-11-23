@@ -77,7 +77,7 @@ router.patch("/payments/:id", async (req, res) => {
 
 router.delete("/payments/:id", (req, res) => {
   try {
-    Payments.deleteOne({ id: req.params.id })
+    Payments.deleteOne({ _id: req.params.id })
       .then((response) => res.status(200).send("Successfully Deleted!"))
       .catch((err) => res.status(400).send(err));
   } catch (error) {

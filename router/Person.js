@@ -112,9 +112,14 @@ router.patch("/person/:id", async (req, res) => {
 
 router.delete("/person/:id", (req, res) => {
   try {
-    Person.deleteOne({ id: req.params.id })
+    Person.deleteOne({
+      _id: req.params.id,
+    })
       .then((response) => res.status(200).send("Successfully Deleted!"))
-      .catch((err) => res.status(400).send(err));
+      .catch((err) => {
+        console.log(err);
+        res.status(400).send(err);
+      });
   } catch (error) {
     res.status(400).send(error);
   }

@@ -48,7 +48,8 @@ const generateRoomID = () => {
 
 router.post("/roomtypes", async (req, res) => {
   const data = req.body;
-  data.RoomTypeID = await generateRoomTypeID();
+  const roomtypeid = await generateRoomTypeID();
+  data.RoomTypeID = roomtypeid;
   data.Availability = data.Availability.filter((r) => r !== "");
   const roomtype = new RoomTypes(data);
   try {
@@ -60,12 +61,13 @@ router.post("/roomtypes", async (req, res) => {
           availability.map(async (a, idx) => {
             if (a != "") {
               let roomdata = {
-                RoomTypeID: data.RoomTypeID,
+                RoomTypeID: roomtypeid,
                 RoomNumber: a,
-                RoomID: generateRoomID(),
+                RoomID: await generateRoomID(),
                 isRoomAvailable: true,
                 ServiceRequested: false,
               };
+              console.log({ roomtypeid: data.RoomTypeID });
               const room = new Room(roomdata);
               room.save(room).then((result) => {
                 if (idx == availability.length - 1)
@@ -94,6 +96,7 @@ router.patch("/roomtypes/:id", async (req, res) => {
 
   const id = req.params.id;
   const data = req.body;
+  console.log({ data });
   if (data.Availability.length) {
     data.Availability = data.Availability.filter((r) => r !== "");
     data.Availability.map((id) => {
@@ -106,6 +109,7 @@ router.patch("/roomtypes/:id", async (req, res) => {
             isRoomAvailable: true,
             ServiceRequested: false,
           };
+          console.log({ roomtypeid: data.RoomTypeID });
           const room = new Room(roomdata);
           await room.save(room);
         }

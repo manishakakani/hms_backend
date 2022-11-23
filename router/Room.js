@@ -114,7 +114,7 @@ router.patch("/room/:id", async (req, res) => {
 
 router.delete("/room/:id", (req, res) => {
   try {
-    Room.deleteOne({ id: req.params.id })
+    Room.deleteOne({ _id: req.params.id })
       .then((response) => res.status(200).send("Successfully Deleted!"))
       .catch((err) => res.status(400).send(err));
   } catch (error) {

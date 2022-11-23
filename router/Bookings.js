@@ -220,7 +220,7 @@ router.patch("/bookings/:id", async (req, res) => {
 
 router.delete("/bookings/:id", (req, res) => {
   try {
-    Bookings.deleteOne({ id: req.params.id })
+    Bookings.deleteOne({ _id: req.params.id })
       .then((response) => res.status(200).send("Successfully Deleted!"))
       .catch((err) => res.status(400).send(err));
   } catch (error) {
